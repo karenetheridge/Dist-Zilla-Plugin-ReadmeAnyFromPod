@@ -39,7 +39,7 @@ my $types = {
             require IO::Scalar;
             my $input_handle = IO::Scalar->new(\$mmcontent);
 
-            $parser->parse_from_fiqlehandle($input_handle);
+            $parser->parse_from_filehandle($input_handle);
             my $content = $parser->as_markdown();
             return $content;
         },
@@ -73,10 +73,10 @@ has filename => (
     ro, lazy,
     isa => 'Str',
     default => sub { $types->{$_[0]->type}->{filename}; }
-)
+);
 
 sub get_readme_content {
-    my ($self,) = @_;
+    my ($self) = shift;
     my $mmcontent = $self->zilla->main_module->content;
     my $parser = $types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
