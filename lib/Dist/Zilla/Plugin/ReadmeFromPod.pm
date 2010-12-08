@@ -2,39 +2,103 @@ package Dist::Zilla::Plugin::ReadmeFromPod;
 
 use Moose;
 use Moose::Autobox;
+use MooseX::Has::Sugar;
 use IO::Handle;
 use Encode qw( encode );
 
 with 'Dist::Zilla::Role::InstallTool';
 
+my $types = {
+    text => {
+        filename => 'README',
+        parser => sub {
+            my $mmcontent = $_[0];
+
+            require Pod::Text;
+            my $parser = Pod::Text->new();
+            $parser->output_string( \my $input_content );
+            $parser->parse_string_document( $mmcontent );
+
+            my $content;
+            if( defined $parser->{encoding} ){
+                $content = encode( $parser->{encoding} , $input_content );
+            } else {
+                $content = $input_content;
+            }
+            return $content;
+        },
+    },
+    markdown => {
+        filename => 'README.mkdn',
+        parser => sub {
+            my $mmcontent = $_[0];
+
+            require Pod::Markdown;
+            my $parser = Pod::Markdown->new();
+
+            require IO::Scalar;
+            my $input_handle = IO::Scalar->new(\$mmcontent);
+
+            $parser->parse_from_fiqlehandle($input_handle);
+            my $content = $parser->as_markdown();
+            return $content;
+        },
+    },
+    pod => {
+        filename => 'README.pod',
+        parser => sub {
+            my $mmcontent = $_[0];
+
+            require Pod::Select;
+            require IO::Scalar;
+            my $input_handle = IO::Scalar->new(\$mmcontent);
+            my $content = '';
+            my $output_handle = IO::Scalar->new(\$content);
+
+            my $parser = Pod::Select->new();
+            $parser->parse_from_filehandle($input_handle, $output_handle);
+
+            return $content;
+        },
+    },
+};
+
+has type => (
+    ro, lazy,
+    isa        => 'Str',
+    default    => sub { 'text' },
+);
+
+has filename => (
+    ro, lazy,
+    isa => 'Str',
+    default => sub { $types->{$_[0]->type}->{filename}; }
+)
+
+sub get_readme_content {
+    my ($self,) = @_;
+    my $mmcontent = $self->zilla->main_module->content;
+    my $parser = $types->{$self->type}->{parser};
+    my $readme_content = $parser->($mmcontent);
+}
+
 sub setup_installer {
   my ($self, $arg) = @_;
 
   require Dist::Zilla::File::InMemory;
-  
-  my $mmcontent = $self->zilla->main_module->content;
 
-  require Pod::Text;
-  my $parser = Pod::Text->new();
-  $parser->output_string( \my $input_content );
-  $parser->parse_string_document( $mmcontent );
-  
-  my $content;
-  if( defined $parser->{encoding} ){ 
-    $content = encode( $parser->{encoding} , $input_content );
-  } else { 
-     $content = $input_content; 
-  }
+  my $content = $self->get_readme_content();
 
-  my $file = $self->zilla->files->grep( sub { $_->name =~ m{README\z} } )->head;
+  my $filename = $self->filename;
+  my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
 
   if ( $file ) {
     $file->content( $content );
-    $self->zilla->log("Override README from [ReadmeFromPod]");
+    $self->zilla->log("Override $filename from [ReadmeFromPod]");
   } else {
     $file = Dist::Zilla::File::InMemory->new({
         content => $content,
-        name    => 'README',
+        name    => $filename,
     });
     $self->add_file($file);
   }
