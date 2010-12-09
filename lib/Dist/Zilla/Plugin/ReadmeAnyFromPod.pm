@@ -1,4 +1,4 @@
-package Dist::Zilla::Plugin::ReadmeFromPod;
+package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 
 use Moose;
 use Moose::Autobox;
@@ -94,7 +94,7 @@ sub setup_installer {
 
   if ( $file ) {
     $file->content( $content );
-    $self->zilla->log("Override $filename from [ReadmeFromPod]");
+    $self->zilla->log("Override $filename from [ReadmeAnyFromPod]");
   } else {
     $file = Dist::Zilla::File::InMemory->new({
         content => $content,
@@ -110,12 +110,12 @@ __PACKAGE__->meta->make_immutable;
 
 =head1 NAME
 
-Dist::Zilla::Plugin::ReadmeFromPod - Automatically convert POD to a README for Dist::Zilla
+Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README for Dist::Zilla
 
 =head1 SYNOPSIS
 
     # dist.ini
-    [ReadmeFromPod]
+    [ReadmeAnyFromPod]
 
 =head1 DESCRIPTION
 

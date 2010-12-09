@@ -1,6 +1,11 @@
-Revision history for Dist-Zilla-Plugin-ReadmeFromPod
+Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
+
+    - Added the ability to sepcify file name and format. Support for
+      three formats included: plaintext, markdown, and pod.
+
+    - Renamed to ReadmeAnyFromPod.
 
 0.14 2010-09-17 20:38:55
 
