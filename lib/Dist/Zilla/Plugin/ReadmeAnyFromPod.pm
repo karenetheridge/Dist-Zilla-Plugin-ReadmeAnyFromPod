@@ -3,6 +3,7 @@ package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 use Moose;
 use Moose::Autobox;
 use MooseX::Has::Sugar;
+use Moose::Util::TypeConstraints qw(enum);
 use IO::Handle;
 use Encode qw( encode );
 
@@ -61,18 +62,70 @@ my $types = {
             return $content;
         },
     },
+    html => {
+        filename => 'README.html',
+        parser => sub {
+            my $mmcontent = $_[0];
+
+            require Pod::Simple::HTML;
+            my $parser = Pod::Simple::HTML->new;
+            my $content;
+            $parser->output_string( \$content );
+            $parser->parse_string_document($mmcontent);
+            return $content;
+        }
+    }
 };
+
+=attr type
+
+The file format for the readme. Supported types are "text", "markdown", "pod", and "html".
+
+=cut
 
 has type => (
     ro, lazy,
-    isa        => 'Str',
+    isa        => enum([keys %$types]),
     default    => sub { 'text' },
 );
+
+=attr filename
+
+The file name of the README file to produce. The default depends on the selected format.
+
+=cut
 
 has filename => (
     ro, lazy,
     isa => 'Str',
     default => sub { $types->{$_[0]->type}->{filename}; }
+);
+
+=attr location
+
+Where to put the generated README file. Choices are:
+
+=over 4
+
+=item build
+
+This puts the README in the directory where the dist is currently
+being built, where it will be incorporated into the dist.
+
+=item root
+
+This puts the README in the root directory (the same directory that
+contains F<dist.ini>). The README will not be incorporated into the
+built dist.
+
+=back
+
+=cut
+
+has location => (
+    ro, lazy,
+    isa => enum([qw(build root)]),
+    default => sub { 'build' }
 );
 
 sub get_readme_content {
@@ -83,30 +136,44 @@ sub get_readme_content {
 }
 
 sub setup_installer {
-  my ($self, $arg) = @_;
+    my ($self, $arg) = @_;
 
-  require Dist::Zilla::File::InMemory;
+    require Dist::Zilla::File::InMemory;
 
-  my $content = $self->get_readme_content();
+    my $content = $self->get_readme_content();
 
-  my $filename = $self->filename;
-  my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
+    my $filename = $self->filename;
+    my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
 
-  if ( $file ) {
-    $file->content( $content );
-    $self->zilla->log("Override $filename from [ReadmeAnyFromPod]");
-  } else {
-    $file = Dist::Zilla::File::InMemory->new({
-        content => $content,
-        name    => $filename,
-    });
-    $self->add_file($file);
-  }
+    if ( $self->location eq 'build' ) {
+        if ( $file ) {
+            $file->content( $content );
+            $self->zilla->log("Override $filename in build from [ReadmeAnyFromPod]");
+        } else {
+            $file = Dist::Zilla::File::InMemory->new({
+                content => $content,
+                name    => $filename,
+            });
+            $self->add_file($file);
+        }
+    }
+    elsif ( $self->location eq 'root' ) {
+        require File::Slurp;
+        my $file = $self->zilla->root->file($filename);
+        if (-e $file) {
+            $self->zilla->log("Override $filename in root from [ReadmeAnyFromPod]");
+        }
+        File::Slurp::write_file("$file", $content);
+    }
+    else {
+        die "Unknown location specified";
+    }
 
-  return;
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
+# ABSTRACT: Automatically convert POD to a README for Dist::Zilla
 
 =head1 NAME
 
