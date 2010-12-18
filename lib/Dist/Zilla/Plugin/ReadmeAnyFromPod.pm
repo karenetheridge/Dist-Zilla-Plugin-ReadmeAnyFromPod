@@ -2,7 +2,7 @@ use strict;
 use warnings;
 
 package Dist::Zilla::Plugin::ReadmeAnyFromPod;
-# ABSTRACT: Automatically convert POD to a README for Dist::Zilla
+# ABSTRACT: Automatically convert POD to a README in any format for Dist::Zilla
 
 use Moose;
 use Moose::Autobox;

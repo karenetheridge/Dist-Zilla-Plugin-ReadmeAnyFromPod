@@ -2,11 +2,11 @@
 
 =head1 NAME
 
-Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README for Dist::Zilla
+Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in any format for Dist::Zilla
 
 =head1 VERSION
 
-version 0.103520
+version 0.103521
 
 =head1 SYNOPSIS
 
