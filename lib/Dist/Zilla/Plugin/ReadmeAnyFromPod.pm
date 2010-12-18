@@ -12,6 +12,7 @@ use IO::Handle;
 use Encode qw( encode );
 
 with 'Dist::Zilla::Role::InstallTool';
+with 'Dist::Zilla::Role::FilePruner';
 
 my $types = {
     text => {
@@ -131,6 +132,26 @@ has location => (
     isa => enum([qw(build root)]),
     default => sub { 'build' }
 );
+
+=method prune_files
+
+Files with C<location = root> must also be pruned, so that they don't
+sneak into the I<next> build by virtue of already existing in thr root
+dir.
+
+=cut
+
+sub prune_files {
+  my ($self) = @_;
+  if ($self->location eq 'root') {
+      for my $file ($self->zilla->files->flatten) {
+          next unless $file->name eq $self->filename;
+          $self->log_debug([ 'pruning %s', $file->name ]);
+          $self->zilla->prune_file($file);
+      }
+  }
+  return;
+}
 
 =method setup_installer
 

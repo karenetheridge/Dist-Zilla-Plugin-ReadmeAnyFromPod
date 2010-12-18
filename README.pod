@@ -61,6 +61,12 @@ built dist.
 
 =head1 METHODS
 
+=head2 prune_files
+
+Files with C<location = root> must also be pruned, so that they don't
+sneak into the I<next> build by virtue of already existing in thr root
+dir.
+
 =head2 setup_installer
 
 Adds the requested README file to the dist.
