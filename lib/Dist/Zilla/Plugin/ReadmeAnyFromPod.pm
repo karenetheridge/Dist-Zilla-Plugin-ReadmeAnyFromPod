@@ -1,4 +1,8 @@
+use strict;
+use warnings;
+
 package Dist::Zilla::Plugin::ReadmeAnyFromPod;
+# ABSTRACT: Automatically convert POD to a README for Dist::Zilla
 
 use Moose;
 use Moose::Autobox;
@@ -128,15 +132,14 @@ has location => (
     default => sub { 'build' }
 );
 
-sub get_readme_content {
-    my ($self) = shift;
-    my $mmcontent = $self->zilla->main_module->content;
-    my $parser = $types->{$self->type}->{parser};
-    my $readme_content = $parser->($mmcontent);
-}
+=method setup_installer
+
+Adds the requested README file to the dist.
+
+=cut
 
 sub setup_installer {
-    my ($self, $arg) = @_;
+    my ($self) = @_;
 
     require Dist::Zilla::File::InMemory;
 
@@ -172,33 +175,54 @@ sub setup_installer {
     return;
 }
 
+=method get_readme_content
+
+Get the content of the README in the desired format.
+
+=cut
+
+sub get_readme_content {
+    my ($self) = shift;
+    my $mmcontent = $self->zilla->main_module->content;
+    my $parser = $types->{$self->type}->{parser};
+    my $readme_content = $parser->($mmcontent);
+}
+
 __PACKAGE__->meta->make_immutable;
-# ABSTRACT: Automatically convert POD to a README for Dist::Zilla
 
-=head1 NAME
-
-Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README for Dist::Zilla
+__END__
 
 =head1 SYNOPSIS
 
-    # dist.ini
+In your F<dist.ini>
+
     [ReadmeAnyFromPod]
+    ; Default is plaintext README in build dir
+
+    ; Using non-default options: POD format with custom filename in
+    ; dist root, outside of build. Including this README in version
+    ; control makes Github happy.
+    [ReadmeAnyFromPod / ReadmePodInRoot]
+    type = pod
+    filename = README.pod
+    location = root
 
 =head1 DESCRIPTION
 
-Generates a plain-text README for your L<Dist::Zilla> powered dist
-from its C<main_module> with L<Pod::Text>.
+Generates a README for your L<Dist::Zilla> powered dist from its
+C<main_module> in any of several formats. The generated README can be
+included in the build or created in the root of your dist for e.g.
+inclusion into version control.
 
-=head1 AUTHORS
+=head1 BUGS AND LIMITATIONS
 
-Fayland Lam <fayland@gmail.com> and E<AElig>var ArnfjE<ouml>rE<eth> Bjarmason <avar@cpan.org>
+Please report any bugs or feature requests to
+C<rct+perlbug@thompsonclan.org>.
 
-=head1 LICENSE AND COPYRIGHT
+=head1 SEE ALSO
 
-Copyright 2010 Fayland Lam <fayland@gmail.com> and E<AElig>var
-ArnfjE<ouml>rE<eth> Bjarmason <avar@cpan.org>
+=for :list
+* L<Dist::Zilla::Plugin::ReadmeFromPod> - The base for this module
+* L<Dist::Zilla::Plugin::ReadmeMarkdownFromPod> - Functionality subsumed by this module
+* L<Dist::Zilla::Plugin::CopyReadmeFromBuild> - Functionality partly subsumed by this module
 
-This program is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
