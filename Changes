@@ -2,6 +2,17 @@ Revision history for Dist-Zilla-Plugin-ReadmeFromPod
 
 {{$NEXT}}
 
+    - Merged from RTHOMPSON:
+
+      - Added the ability to specify file name and format of README
+        file. Support for plaintext, markdown, pod, and html.
+
+      - Added the ability to generate readme in dist root, rather than
+        build dir (somewhat like CopyReadmeFromBuild).
+
+      - Prune files with location = root, so they don't sneak back into
+        the dist via GatherDir.
+
 0.14 2010-09-17 20:38:55
 
     - Set the META repository url to my github repo, as suggested
