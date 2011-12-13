@@ -136,7 +136,7 @@ has location => (
 =method prune_files
 
 Files with C<location = root> must also be pruned, so that they don't
-sneak into the I<next> build by virtue of already existing in thr root
+sneak into the I<next> build by virtue of already existing in the root
 dir.
 
 =cut
