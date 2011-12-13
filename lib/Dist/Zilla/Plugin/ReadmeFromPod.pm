@@ -240,4 +240,3 @@ inclusion into version control.
 =for :list
 * L<Dist::Zilla::Plugin::ReadmeMarkdownFromPod> - Functionality subsumed by this module
 * L<Dist::Zilla::Plugin::CopyReadmeFromBuild> - Functionality partly subsumed by this module
-
