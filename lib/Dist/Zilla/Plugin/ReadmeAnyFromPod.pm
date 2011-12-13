@@ -91,7 +91,7 @@ The file format for the readme. Supported types are "text", "markdown", "pod", a
 has type => (
     ro, lazy,
     isa        => enum([keys %$types]),
-    default    => sub { 'text' },
+    default    => sub { $_[0]->__from_name()[0] || 'text' },
 );
 
 =attr filename
@@ -130,7 +130,7 @@ built dist.
 has location => (
     ro, lazy,
     isa => enum([qw(build root)]),
-    default => sub { 'build' }
+    default    => sub { $_[0]->__from_name()[1] || 'build' },
 );
 
 =method prune_files
@@ -207,6 +207,27 @@ sub get_readme_content {
     my $mmcontent = $self->zilla->main_module->content;
     my $parser = $types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
+}
+
+{
+    my %cache;
+    sub __from_name {
+        my ($self) = @_;
+        my $name = $self->plugin_name;
+
+        # Use cached values if available
+        if ($cache{$name}) {
+            return @{$cache{$name}};
+        }
+
+        my $type_regex = join('|', map {quotemeta} keys %$types);
+        my $location_regex = join('|', map {quotemeta} qw(build root));
+        my $complete_regex = qr{($type_regex)(?:(?:In)?($location_regex))?}i;
+
+        my ($type, $location) = (lc $name) =~ m{\A $complete_regex \Z}ix;
+        $cache{$name} = [$type, $location];
+        return @{$cache{$name}};
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
