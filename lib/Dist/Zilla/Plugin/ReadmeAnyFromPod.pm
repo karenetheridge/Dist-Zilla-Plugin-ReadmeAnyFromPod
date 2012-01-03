@@ -251,6 +251,9 @@ In your F<dist.ini>
     filename = README.pod
     location = root
 
+    ; Using plugin name autodetection: Produces README.html in root
+    [ ReadmeAnyFromPod / HtmlInRoot ]
+
 =head1 DESCRIPTION
 
 Generates a README for your L<Dist::Zilla> powered dist from its
@@ -269,4 +272,3 @@ C<rct+perlbug@thompsonclan.org>.
 * L<Dist::Zilla::Plugin::ReadmeFromPod> - The base for this module
 * L<Dist::Zilla::Plugin::ReadmeMarkdownFromPod> - Functionality subsumed by this module
 * L<Dist::Zilla::Plugin::CopyReadmeFromBuild> - Functionality partly subsumed by this module
-
