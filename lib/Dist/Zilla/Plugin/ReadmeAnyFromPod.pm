@@ -91,7 +91,7 @@ The file format for the readme. Supported types are "text", "markdown", "pod", a
 has type => (
     ro, lazy,
     isa        => enum([keys %$types]),
-    default    => sub { $_[0]->__from_name()[0] || 'text' },
+    default    => sub { $_[0]->__from_name()->[0] || 'text' },
 );
 
 =attr filename
@@ -130,7 +130,7 @@ built dist.
 has location => (
     ro, lazy,
     isa => enum([qw(build root)]),
-    default    => sub { $_[0]->__from_name()[1] || 'build' },
+    default    => sub { $_[0]->__from_name()->[1] || 'build' },
 );
 
 =method prune_files
@@ -228,7 +228,7 @@ sub get_readme_content {
         my $complete_regex = qr{ (?:Readme)? ($type_regex) (?:(?:In)? ($location_regex))? }ix;
         my ($type, $location) = (lc $name) =~ m{\A $complete_regex \Z}ix;
         $cache{$name} = [$type, $location];
-        return @{$cache{$name}};
+        return $cache{$name};
     }
 }
 
