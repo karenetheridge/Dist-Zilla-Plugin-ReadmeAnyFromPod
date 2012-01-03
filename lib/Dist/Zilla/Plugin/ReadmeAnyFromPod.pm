@@ -225,6 +225,7 @@ sub get_readme_content {
         # qr{LOC1|LOC2|...}
         my $location_regex = join('|', map {quotemeta} qw(build root));
         # qr{(?:Readme)? (TYPE1|TYPE2|...) (?:In)? (LOC1|LOC2|...) }x
+        my $complete_regex = qr{ (?:Readme)? ($type_regex) (?:(?:In)? ($location_regex))? }ix;
         my ($type, $location) = (lc $name) =~ m{\A $complete_regex \Z}ix;
         $cache{$name} = [$type, $location];
         return @{$cache{$name}};
