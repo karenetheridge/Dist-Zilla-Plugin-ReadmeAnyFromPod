@@ -220,10 +220,11 @@ sub get_readme_content {
             return @{$cache{$name}};
         }
 
+        # qr{TYPE1|TYPE2|...}
         my $type_regex = join('|', map {quotemeta} keys %$types);
+        # qr{LOC1|LOC2|...}
         my $location_regex = join('|', map {quotemeta} qw(build root));
-        my $complete_regex = qr{($type_regex)(?:(?:In)?($location_regex))?}i;
-
+        # qr{(?:Readme)? (TYPE1|TYPE2|...) (?:In)? (LOC1|LOC2|...) }x
         my ($type, $location) = (lc $name) =~ m{\A $complete_regex \Z}ix;
         $cache{$name} = [$type, $location];
         return @{$cache{$name}};
