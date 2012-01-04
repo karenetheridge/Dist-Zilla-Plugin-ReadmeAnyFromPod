@@ -130,7 +130,7 @@ built dist.
 has location => (
     ro, lazy,
     isa => enum([qw(build root)]),
-    default    => sub { $_[0]->__from_name()->[1] || 'build' },
+    default => sub { $_[0]->__from_name()->[1] || 'build' },
 );
 
 =method prune_files
