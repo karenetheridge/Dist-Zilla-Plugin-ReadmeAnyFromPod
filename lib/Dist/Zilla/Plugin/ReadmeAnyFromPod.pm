@@ -14,7 +14,7 @@ use Encode qw( encode );
 with 'Dist::Zilla::Role::InstallTool';
 with 'Dist::Zilla::Role::FilePruner';
 
-my $types = {
+our $_types = {
     text => {
         filename => 'README',
         parser => sub {
@@ -90,7 +90,7 @@ The file format for the readme. Supported types are "text", "markdown", "pod", a
 
 has type => (
     ro, lazy,
-    isa        => enum([keys %$types]),
+    isa        => enum([keys %$_types]),
     default    => sub { $_[0]->__from_name()->[0] || 'text' },
 );
 
@@ -103,7 +103,7 @@ The file name of the README file to produce. The default depends on the selected
 has filename => (
     ro, lazy,
     isa => 'Str',
-    default => sub { $types->{$_[0]->type}->{filename}; }
+    default => sub { $_types->{$_[0]->type}->{filename}; }
 );
 
 =attr location
@@ -205,7 +205,7 @@ Get the content of the README in the desired format.
 sub get_readme_content {
     my ($self) = shift;
     my $mmcontent = $self->zilla->main_module->content;
-    my $parser = $types->{$self->type}->{parser};
+    my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
 }
 
@@ -221,7 +221,7 @@ sub get_readme_content {
         }
 
         # qr{TYPE1|TYPE2|...}
-        my $type_regex = join('|', map {quotemeta} keys %$types);
+        my $type_regex = join('|', map {quotemeta} keys %$_types);
         # qr{LOC1|LOC2|...}
         my $location_regex = join('|', map {quotemeta} qw(build root));
         # qr{(?:Readme)? (TYPE1|TYPE2|...) (?:In)? (LOC1|LOC2|...) }x
