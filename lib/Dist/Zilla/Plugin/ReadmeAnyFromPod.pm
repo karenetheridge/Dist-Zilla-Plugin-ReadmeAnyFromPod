@@ -217,7 +217,7 @@ sub get_readme_content {
 
         # Use cached values if available
         if ($cache{$name}) {
-            return @{$cache{$name}};
+            return $cache{$name};
         }
 
         # qr{TYPE1|TYPE2|...}
