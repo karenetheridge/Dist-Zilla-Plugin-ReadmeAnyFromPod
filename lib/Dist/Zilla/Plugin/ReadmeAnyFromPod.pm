@@ -261,6 +261,14 @@ C<main_module> in any of several formats. The generated README can be
 included in the build or created in the root of your dist for e.g.
 inclusion into version control.
 
+=head2 PLUGIN NAME AUTODETECTION
+
+If you give the plugin an appropriate name (a string after the slash)
+in your dist.ini, it will can parse the C<type> and C<location>
+attributes from it. The format is "Readme[TYPE]In[LOCATION]". The
+words "Readme" and "In" are optional, and the whole name is
+case-insensitive. The SYNOPSIS section above gives one example.
+
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
