@@ -72,9 +72,6 @@ for my $tested_type (@possible_types) {
         implicit => config_implicit($tested_type),
     );
 
-    my %ini = map { $_ => simple_ini('GatherDir', $config{$_}) } keys %config;
-    ### %ini
-
     my %tzil = map {
         $_ => Builder->from_config(
             { dist_root => 'corpus/dist/DZT' },
