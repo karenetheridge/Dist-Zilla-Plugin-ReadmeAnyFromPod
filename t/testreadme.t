@@ -56,12 +56,15 @@ my %tests = (
         [ qr/__[^\s_]+__/, "Markdown bold formatting" ],
         [ qr/[^_]_[^\s_]+_[^_]/, "Markdown italic formatting" ],
     ],
+    never => [
+        [ qr/\r/, "Carriage return", ],
+    ]
 );
 
 my @possible_types = keys %$Dist::Zilla::Plugin::ReadmeAnyFromPod::_types;
 
 for my $tested_type (@possible_types) {
-    my @other_types = grep { $_ ne $tested_type } @possible_types;
+    my @other_types = grep { $_ ne $tested_type } keys %tests;
     my $filename = type_filename($tested_type);
 
     my %config = (
