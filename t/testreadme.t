@@ -63,6 +63,9 @@ my %tests = (
 
 my @possible_types = keys %$Dist::Zilla::Plugin::ReadmeAnyFromPod::_types;
 
+my $expected_number_of_tests = scalar(@possible_types) * (2 + scalar(map { @$_ } values %tests)) * 2;
+plan tests => $expected_number_of_tests;
+
 for my $tested_type (@possible_types) {
     my @other_types = grep { $_ ne $tested_type } keys %tests;
     my $filename = type_filename($tested_type);
