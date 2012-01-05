@@ -6,7 +6,7 @@ Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in
 
 =head1 VERSION
 
-version 0.120040
+version 0.120053
 
 =head1 SYNOPSIS
 
@@ -75,7 +75,7 @@ built dist.
 =head2 prune_files
 
 Files with C<location = root> must also be pruned, so that they don't
-sneak into the I<next> build by virtue of already existing in thr root
+sneak into the I<next> build by virtue of already existing in the root
 dir.
 
 =head2 setup_installer
