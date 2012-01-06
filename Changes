@@ -1,6 +1,7 @@
 Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
+    - Added more tests
 
 0.120053  2012-01-05 13:42:35 PST8PDT
     - Option autodetection now works better. In particular, it now
