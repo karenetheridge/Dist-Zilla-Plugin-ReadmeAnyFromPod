@@ -11,6 +11,8 @@ use Moose::Util::TypeConstraints qw(enum);
 use IO::Handle;
 use Encode qw( encode );
 
+# This cannot be the FileGatherer role, because it needs to be called
+# after file munging to get the fully-munged POD.
 with 'Dist::Zilla::Role::InstallTool';
 with 'Dist::Zilla::Role::FilePruner';
 
