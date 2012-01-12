@@ -6,7 +6,7 @@ Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in
 
 =head1 VERSION
 
-version 0.120053
+version 0.120120
 
 =head1 SYNOPSIS
 

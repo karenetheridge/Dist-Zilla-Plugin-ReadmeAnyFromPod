@@ -1,6 +1,9 @@
 Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
+
+0.120120  2012-01-11 22:41:25 PST8PDT
+    - Slight improvement to log messages for file overrides
     - Added more tests
 
 0.120053  2012-01-05 13:42:35 PST8PDT
