@@ -172,7 +172,7 @@ sub setup_installer {
     if ( $self->location eq 'build' ) {
         if ( $file ) {
             $file->content( $content );
-            $self->zilla->log("Override $filename in build from [ReadmeAnyFromPod]");
+            $self->log("Override $filename in build");
         } else {
             $file = Dist::Zilla::File::InMemory->new({
                 content => $content,
@@ -185,7 +185,7 @@ sub setup_installer {
         require File::Slurp;
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
-            $self->zilla->log("Override $filename in root from [ReadmeAnyFromPod]");
+            $self->log("Override $filename in root");
         }
         File::Slurp::write_file("$file", {binmode => ':raw'}, $content);
     }
