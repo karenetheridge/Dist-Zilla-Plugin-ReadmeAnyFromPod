@@ -117,16 +117,9 @@ The default is the file of the main module of the dist.
 
 has from_filename => (
     ro, lazy,
-    isa => 'Dist::Zilla::Role::File',
-    default => sub { $self->zilla->main_module; },
-    builder => '_build_from_filename',
+    isa => 'Str',
+    default => sub { shift->zilla->main_module->name; },
 );
-
-sub _build_from_filename {
-    my ($self, $filename) = @_;
-    my @files = grep { $_->name eq $filename } $self->zilla->files->flatten;
-    return @files; # let moose throw exception if multiple files...
-}
 
 =attr location
 
@@ -218,6 +211,14 @@ sub setup_installer {
     return;
 }
 
+sub _file_from_filename {
+    my ($self, $filename) = @_;
+    for my $file ($self->zilla->files->flatten) {
+        return $file if $file->name eq $filename;
+    }
+    return; # let moose throw exception if nothing found
+}
+
 =method get_readme_content
 
 Get the content of the README in the desired format.
@@ -226,7 +227,7 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-    my $mmcontent = $self->from_filename->content;
+    my $mmcontent = $self->_file_from_filename($self->from_filename)->content;
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
 }
