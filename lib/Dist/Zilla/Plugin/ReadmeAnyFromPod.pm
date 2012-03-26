@@ -108,6 +108,26 @@ has filename => (
     default => sub { $_types->{$_[0]->type}->{filename}; }
 );
 
+=attr from_module
+
+The file from which to extract POD for the content of the README.
+The default is the file of the main module of the dist.
+
+=cut
+
+has from_filename => (
+    ro, lazy,
+    isa => 'Dist::Zilla::Role::File',
+    default => sub { $self->zilla->main_module; },
+    builder => '_build_from_filename',
+);
+
+sub _build_from_filename {
+    my ($self, $filename) = @_;
+    my @files = grep { $_->name eq $filename } $self->zilla->files->flatten;
+    return @files; # let moose throw exception if multiple files...
+}
+
 =attr location
 
 Where to put the generated README file. Choices are:
@@ -206,7 +226,7 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-    my $mmcontent = $self->zilla->main_module->content;
+    my $mmcontent = $self->from_filename->content;
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
 }
