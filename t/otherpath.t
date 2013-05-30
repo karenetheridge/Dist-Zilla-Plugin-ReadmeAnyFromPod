@@ -12,7 +12,7 @@ use Dist::Zilla::Plugin::ReadmeAnyFromPod;
 my @config = ('GatherDir',
 	      [ 'ReadmeAnyFromPod',
 		{
-		 from_filename => "bin/sample",
+		 source_filename => "bin/sample",
 		},
 	      ]
 	     );

@@ -108,14 +108,14 @@ has filename => (
     default => sub { $_types->{$_[0]->type}->{filename}; }
 );
 
-=attr from_filename
+=attr source_filename
 
 The file from which to extract POD for the content of the README.
 The default is the file of the main module of the dist.
 
 =cut
 
-has from_filename => (
+has source_filename => (
     ro, lazy,
     isa => 'Str',
     default => sub { shift->zilla->main_module->name; },
@@ -227,7 +227,7 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-    my $mmcontent = $self->_file_from_filename($self->from_filename)->content;
+    my $mmcontent = $self->_file_from_filename($self->source_filename)->content;
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
 }
