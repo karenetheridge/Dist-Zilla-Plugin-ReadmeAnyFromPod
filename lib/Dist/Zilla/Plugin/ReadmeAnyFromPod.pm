@@ -108,7 +108,7 @@ has filename => (
     default => sub { $_types->{$_[0]->type}->{filename}; }
 );
 
-=attr from_module
+=attr from_filename
 
 The file from which to extract POD for the content of the README.
 The default is the file of the main module of the dist.
