@@ -234,7 +234,7 @@ sub after_build {
         require File::Slurp;
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
-            $self->log("Override $filename in root");
+            $self->log("overriding $filename in root");
         }
         File::Slurp::write_file("$file", {binmode => ':raw'}, $content);
     }
