@@ -236,7 +236,9 @@ sub after_build {
         if (-e $file) {
             $self->log("overriding $filename in root");
         }
-        File::Slurp::write_file("$file", {binmode => ':raw'}, $content);
+        # :raw for avoiding \n -> \r\n on win32
+        # :utf8 because content we read from pod contains wide characters
+        File::Slurp::write_file("$file", {binmode => ':raw:utf8'}, $content);
     }
 
     return;
