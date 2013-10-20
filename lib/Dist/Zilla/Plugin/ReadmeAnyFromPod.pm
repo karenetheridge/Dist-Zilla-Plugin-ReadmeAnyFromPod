@@ -24,15 +24,9 @@ our $_types = {
 
             require Pod::Text;
             my $parser = Pod::Text->new();
-            $parser->output_string( \my $input_content );
+            $parser->output_string( \my $content );
+            $parser->parse_characters(1);
             $parser->parse_string_document( $mmcontent );
-
-            my $content;
-            if( defined $parser->{encoding} ){
-                $content = encode( $parser->{encoding} , $input_content );
-            } else {
-                $content = $input_content;
-            }
             return $content;
         },
     },
