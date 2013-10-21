@@ -17,17 +17,18 @@ use List::Util qw( reduce );
 with 'Dist::Zilla::Role::InstallTool';
 with 'Dist::Zilla::Role::FilePruner';
 
+# TODO: Should these be separate modules?
 our $_types = {
     text => {
         filename => 'README',
         parser => sub {
             my $mmcontent = $_[0];
 
-            require Pod::Text;
-            my $parser = Pod::Text->new();
+            require Pod::Simple::Text;
+            my $parser = Pod::Simple::Text->new;
             $parser->output_string( \my $content );
             $parser->parse_characters(1);
-            $parser->parse_string_document( $mmcontent );
+            $parser->parse_string_document($mmcontent);
             return $content;
         },
     },
