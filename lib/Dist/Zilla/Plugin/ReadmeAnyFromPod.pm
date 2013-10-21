@@ -4,13 +4,14 @@ use warnings;
 package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 # ABSTRACT: Automatically convert POD to a README in any format for Dist::Zilla
 
-use Moose;
-use Moose::Autobox;
-use MooseX::Has::Sugar;
-use Moose::Util::TypeConstraints qw(enum);
 use IO::Handle;
-use Encode qw( encode );
 use List::Util qw( reduce );
+use Moose::Autobox;
+use Moose::Util::TypeConstraints qw(enum);
+use Moose;
+use MooseX::Has::Sugar;
+use PPI::Document;
+use PPI::Token::Pod;
 
 # This cannot be the FileGatherer role, because it needs to be called
 # after file munging to get the fully-munged POD.
@@ -19,72 +20,51 @@ with 'Dist::Zilla::Role::FilePruner';
 
 # TODO: Should these be separate modules?
 our $_types = {
+    pod => {
+        filename => 'README.pod',
+        parser => sub {
+            return $_[0];
+        },
+    },
     text => {
         filename => 'README',
         parser => sub {
-            my $mmcontent = $_[0];
+            my $pod = $_[0];
 
             require Pod::Simple::Text;
             my $parser = Pod::Simple::Text->new;
             $parser->output_string( \my $content );
             $parser->parse_characters(1);
-            $parser->parse_string_document($mmcontent);
+            $parser->parse_string_document($pod);
             return $content;
         },
     },
     markdown => {
         filename => 'README.mkdn',
         parser => sub {
-            my $mmcontent = $_[0];
+            my $pod = $_[0];
 
             require Pod::Markdown;
             my $parser = Pod::Markdown->new();
 
             require IO::Scalar;
-            my $input_handle = IO::Scalar->new(\$mmcontent);
+            my $input_handle = IO::Scalar->new(\$pod);
 
             $parser->parse_from_filehandle($input_handle);
             my $content = $parser->as_markdown();
             return $content;
         },
     },
-    pod => {
-        filename => 'README.pod',
-        parser => sub {
-            my $mmcontent = $_[0];
-
-            # TODO: Use this code to extract only POD and pass only
-            # POD content to other parsers. This will receive the main
-            # module content pre-decoded and will return the POD in a
-            # decoded state. Each parser will then take that POD and
-            # return the readme content as a string.
-            require PPI::Document;
-            require PPI::Token::Pod;
-            my $doc = PPI::Document->new(\$mmcontent);
-            my $pod_elems = $doc->find('PPI::Token::Pod');
-            my $content = "";
-            if ($pod_elems) {
-                # Concatenation should stringify it
-                $content .= PPI::Token::Pod->merge(@$pod_elems);
-            }
-            else {
-                # False means no POD, so return empty string
-                $content = "";
-            }
-
-            return $content;
-        },
-    },
     html => {
         filename => 'README.html',
         parser => sub {
-            my $mmcontent = $_[0];
+            my $pod = $_[0];
 
             require Pod::Simple::HTML;
             my $parser = Pod::Simple::HTML->new;
             $parser->output_string( \my $content );
             $parser->parse_characters(1);
-            $parser->parse_string_document($mmcontent);
+            $parser->parse_string_document($pod);
             return $content;
         }
     }
@@ -225,6 +205,21 @@ sub _file_from_filename {
     return; # let moose throw exception if nothing found
 }
 
+# Returns a file's POD as a string
+sub _extract_pod {
+    my $mmcontent = $_[1];
+
+    my $doc = PPI::Document->new(\$mmcontent);
+    my $pod_elems = $doc->find('PPI::Token::Pod');
+    my $content = "";
+    if ($pod_elems) {
+        # Concatenation should stringify it
+        $content .= PPI::Token::Pod->merge(@$pod_elems);
+    }
+
+    return $content;
+}
+
 =method get_readme_content
 
 Get the content of the README in the desired format.
@@ -234,8 +229,9 @@ Get the content of the README in the desired format.
 sub get_readme_content {
     my ($self) = shift;
     my $mmcontent = $self->_file_from_filename($self->source_filename)->content;
+    my $mmpod = $self->_extract_pod($mmcontent);
     my $parser = $_types->{$self->type}->{parser};
-    my $readme_content = $parser->($mmcontent);
+    my $readme_content = $parser->($mmpod);
 }
 
 {
