@@ -10,6 +10,7 @@ use MooseX::Has::Sugar;
 use Moose::Util::TypeConstraints qw(enum);
 use IO::Handle;
 use Encode qw( encode );
+use List::Util qw( reduce );
 
 # This cannot be the FileGatherer role, because it needs to be called
 # after file munging to get the fully-munged POD.
@@ -51,14 +52,24 @@ our $_types = {
         parser => sub {
             my $mmcontent = $_[0];
 
-            require Pod::Select;
-            require IO::Scalar;
-            my $input_handle = IO::Scalar->new(\$mmcontent);
-            my $content = '';
-            my $output_handle = IO::Scalar->new(\$content);
-
-            my $parser = Pod::Select->new();
-            $parser->parse_from_filehandle($input_handle, $output_handle);
+            # TODO: Use this code to extract only POD and pass only
+            # POD content to other parsers. This will receive the main
+            # module content pre-decoded and will return the POD in a
+            # decoded state. Each parser will then take that POD and
+            # return the readme content as a string.
+            require PPI::Document;
+            require PPI::Token::Pod;
+            my $doc = PPI::Document->new(\$mmcontent);
+            my $pod_elems = $doc->find('PPI::Token::Pod');
+            my $content = "";
+            if ($pod_elems) {
+                # Concatenation should stringify it
+                $content .= PPI::Token::Pod->merge(@$pod_elems);
+            }
+            else {
+                # False means no POD, so return empty string
+                $content = "";
+            }
 
             return $content;
         },
