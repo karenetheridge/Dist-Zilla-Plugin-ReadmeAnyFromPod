@@ -70,8 +70,8 @@ our $_types = {
 
             require Pod::Simple::HTML;
             my $parser = Pod::Simple::HTML->new;
-            my $content;
-            $parser->output_string( \$content );
+            $parser->output_string( \my $content );
+            $parser->parse_characters(1);
             $parser->parse_string_document($mmcontent);
             return $content;
         }
