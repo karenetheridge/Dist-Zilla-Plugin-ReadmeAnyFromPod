@@ -288,7 +288,23 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-    my $mmcontent = $self->_file_from_filename($self->source_filename)->content;
+
+    my $file = $self->_file_from_filename($self->source_filename);
+    if (not $file->does('Dist::Zilla::Role::File::ChangeNotification'))
+    {
+        require Dist::Zilla::Role::File::ChangeNotification;
+        Dist::Zilla::Role::File::ChangeNotification->meta->apply($file);
+        my $plugin = $self;
+        $file->on_changed(sub {
+            my $self = shift;
+            $plugin->log_fatal('someone tried to munge ' . $self->name
+                . ' after we read from it. You need to adjust the load order of your plugins.');
+        });
+
+        $file->watch_file;
+    }
+
+    my $mmcontent = $file->content;
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmcontent);
 }
