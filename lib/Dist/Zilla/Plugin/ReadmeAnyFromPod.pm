@@ -4,9 +4,9 @@ use warnings;
 package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 # ABSTRACT: Automatically convert POD to a README in any format for Dist::Zilla
 
+use Encode qw( encode );
 use IO::Handle;
 use List::Util qw( reduce );
-use Encode qw( encode );
 use Moose::Autobox;
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
@@ -16,8 +16,8 @@ use PPI::Token::Pod;
 
 # This cannot be the FileGatherer role, because it needs to be called
 # after file munging to get the fully-munged POD.
-with 'Dist::Zilla::Role::InstallTool';
-with 'Dist::Zilla::Role::FilePruner';
+with 'Dist::Zilla::Role::InstallTool' => { -version => 5 };
+with 'Dist::Zilla::Role::FilePruner' => { -version => 5 };
 
 # TODO: Should these be separate modules?
 our $_types = {
