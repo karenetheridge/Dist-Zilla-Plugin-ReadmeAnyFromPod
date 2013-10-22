@@ -144,15 +144,15 @@ dir.
 =cut
 
 sub prune_files {
-  my ($self) = @_;
-  if ($self->location eq 'root') {
-      for my $file ($self->zilla->files->flatten) {
-          next unless $file->name eq $self->filename;
-          $self->log_debug([ 'pruning %s', $file->name ]);
-          $self->zilla->prune_file($file);
-      }
-  }
-  return;
+    my ($self) = @_;
+    if ($self->location eq 'root') {
+        for my $file ($self->zilla->files->flatten) {
+            next unless $file->name eq $self->filename;
+            $self->log_debug([ 'pruning %s', $file->name ]);
+            $self->zilla->prune_file($file);
+        }
+    }
+    return;
 }
 
 =method setup_installer
@@ -182,10 +182,8 @@ sub setup_installer {
             encoding => $self->_get_source_encoding(),
         });
         $self->add_file($newfile);
-        }
     }
     elsif ( $self->location eq 'root' ) {
-
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
             $self->log("Override $filename in root");
@@ -197,7 +195,6 @@ sub setup_installer {
     else {
         die "Unknown location specified";
     }
-
     return;
 }
 
@@ -206,7 +203,7 @@ sub _file_from_filename {
     for my $file ($self->zilla->files->flatten) {
         return $file if $file->name eq $filename;
     }
-    return; # let moose throw exception if nothing found
+    return;               # let moose throw exception if nothing found
 }
 
 sub _source_file {
