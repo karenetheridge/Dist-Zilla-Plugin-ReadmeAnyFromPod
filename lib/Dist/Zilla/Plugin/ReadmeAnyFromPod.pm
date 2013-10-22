@@ -243,6 +243,7 @@ Get the content of the README in the desired format.
 =cut
 
 sub get_readme_content {
+    my ($self) = shift;
     my $mmpod = $self->_get_source_pod();
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmpod);
