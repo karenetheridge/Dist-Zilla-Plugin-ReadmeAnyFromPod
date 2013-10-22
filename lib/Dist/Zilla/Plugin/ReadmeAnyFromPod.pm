@@ -6,6 +6,7 @@ package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 
 use IO::Handle;
 use List::Util qw( reduce );
+use Encode qw( encode );
 use Moose::Autobox;
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
@@ -168,27 +169,30 @@ sub setup_installer {
     my $content = $self->get_readme_content();
 
     my $filename = $self->filename;
-    my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
 
     if ( $self->location eq 'build' ) {
+        my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
         if ( $file ) {
-            $file->content( $content );
             $self->log("Override $filename in build");
-        } else {
-            $file = Dist::Zilla::File::InMemory->new({
-                content => $content,
-                name    => $filename,
-            });
-            $self->add_file($file);
+            $self->zilla->prune_file($file);
+        }
+        my $newfile = Dist::Zilla::File::InMemory->new({
+            name    => $filename,
+            content => $content,
+            encoding => $self->_get_source_encoding(),
+        });
+        $self->add_file($newfile);
         }
     }
     elsif ( $self->location eq 'root' ) {
-        require File::Slurp;
+
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
             $self->log("Override $filename in root");
         }
-        File::Slurp::write_file("$file", {binmode => ':raw'}, $content);
+        my $encoded_content = encode($self->_get_source_encoding(),
+                                     $content);
+        File::Slurp::write_file("$file", {binmode => ':raw'}, $encoded_content);
     }
     else {
         die "Unknown location specified";
@@ -205,19 +209,34 @@ sub _file_from_filename {
     return; # let moose throw exception if nothing found
 }
 
-# Returns a file's POD as a string
-sub _extract_pod {
-    my $mmcontent = $_[1];
+sub _source_file {
+    my ($self) = shift;
+    $self->_file_from_filename($self->source_filename);
+}
+
+sub _get_source_content {
+    my ($self) = shift;
+    $self->_source_file->content;
+}
+
+sub _get_source_pod {
+    my ($self) = shift;
+    my $mmcontent = $self->_get_source_content();
 
     my $doc = PPI::Document->new(\$mmcontent);
     my $pod_elems = $doc->find('PPI::Token::Pod');
-    my $content = "";
+    my $pod_content = "";
     if ($pod_elems) {
         # Concatenation should stringify it
-        $content .= PPI::Token::Pod->merge(@$pod_elems);
+        $pod_content .= PPI::Token::Pod->merge(@$pod_elems);
     }
 
-    return $content;
+    return $pod_content;
+}
+
+sub _get_source_encoding {
+    my ($self) = shift;
+    $self->_source_file->encoding;
 }
 
 =method get_readme_content
@@ -227,9 +246,7 @@ Get the content of the README in the desired format.
 =cut
 
 sub get_readme_content {
-    my ($self) = shift;
-    my $mmcontent = $self->_file_from_filename($self->source_filename)->content;
-    my $mmpod = $self->_extract_pod($mmcontent);
+    my $mmpod = $self->_get_source_pod();
     my $parser = $_types->{$self->type}->{parser};
     my $readme_content = $parser->($mmpod);
 }
