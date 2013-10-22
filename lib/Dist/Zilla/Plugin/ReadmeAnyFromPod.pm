@@ -369,6 +369,13 @@ attributes from it. The format is "Readme[TYPE]In[LOCATION]". The
 words "Readme" and "In" are optional, and the whole name is
 case-insensitive. The SYNOPSIS section above gives one example.
 
+When run with C<location = dist>, this plugin runs in the C<FileMunger> phase
+to create the new file. If it runs before another C<FileMunger> plugin does,
+that happens to modify the input pod (like, say,
+L<C<[PodWeaver]>|Dist::Zilla::Plugin::PodWeaver>), the build will fail,
+notifying you that you need to adjust your plugin order. Modify your
+F<dist.ini> by referencing C<[ReadmeAnyFromPod]> lower down in the file.
+
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
