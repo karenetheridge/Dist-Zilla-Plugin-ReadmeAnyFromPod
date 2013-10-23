@@ -13,10 +13,11 @@ use Moose;
 use MooseX::Has::Sugar;
 use PPI::Document;
 use PPI::Token::Pod;
+use Scalar::Util 'blessed';
 
-# This cannot be the FileGatherer role, because it needs to be called
-# after file munging to get the fully-munged POD.
-with 'Dist::Zilla::Role::InstallTool' => { -version => 5 };
+with 'Dist::Zilla::Role::AfterBuild' => { -version => 5 };
+with 'Dist::Zilla::Role::FileGatherer' => { -version => 5 };
+with 'Dist::Zilla::Role::FileMunger' => { -version => 5 };
 with 'Dist::Zilla::Role::FilePruner' => { -version => 5 };
 
 # TODO: Should these be separate modules?
@@ -135,17 +136,51 @@ has location => (
     default => sub { $_[0]->__from_name()->[1] || 'build' },
 );
 
+=method gather_files
+
+We create the file early, so other plugins that need to have the full list of
+files are aware of what we will be generating.
+
+=cut
+
+sub gather_files {
+    my ($self) = @_;
+
+    my $filename = $self->filename;
+    if ( $self->location eq 'build'
+         # allow for the file to also exist in the dist
+         and not @{$self->zilla->files->grep( sub { $_->name eq $filename })}
+       ) {
+        require Dist::Zilla::File::InMemory;
+        my $file = Dist::Zilla::File::InMemory->new({
+            content => 'this will be overwritten',
+            name    => $self->filename,
+        });
+
+        $self->add_file($file);
+    }
+    return;
+}
+
 =method prune_files
 
 Files with C<location = root> must also be pruned, so that they don't
 sneak into the I<next> build by virtue of already existing in the root
-dir.
+dir.  (The alternative is that the user doesn't add them to the build in the
+first place, with an option to their C<GatherDir> plugin.)
 
 =cut
 
 sub prune_files {
     my ($self) = @_;
-    if ($self->location eq 'root') {
+
+    # leave the file in the dist if another instance of us is adding it there.
+    if ($self->location eq 'root'
+        and not grep {
+            blessed($self) eq blessed($_)
+                and $_->location eq 'build'
+                and $_->filename eq $self->filename
+        } @{$self->zilla->plugins}) {
         for my $file ($self->zilla->files->flatten) {
             next unless $file->name eq $self->filename;
             $self->log_debug([ 'pruning %s', $file->name ]);
@@ -155,45 +190,60 @@ sub prune_files {
     return;
 }
 
-=method setup_installer
-
-Adds the requested README file to the dist.
+=method munge_files
 
 =cut
 
-sub setup_installer {
-    my ($self) = @_;
-
-    my $content = $self->get_readme_content();
-
-    my $filename = $self->filename;
+sub munge_files {
+    my $self = shift;
 
     if ( $self->location eq 'build' ) {
-        require Dist::Zilla::File::InMemory;
+        my $filename = $self->filename;
         my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
-        if ( $file ) {
-            $self->log("Override $filename in build");
-            $self->zilla->prune_file($file);
-        }
-        my $newfile = Dist::Zilla::File::InMemory->new({
-            name    => $filename,
-            content => $content,
-            encoding => $self->_get_source_encoding(),
-        });
-        $self->add_file($newfile);
+        $self->munge_file($file);
     }
-    elsif ( $self->location eq 'root' ) {
+    return;
+}
+
+=method munge_file
+
+Edits the content into the requested README file in the dist.
+
+=cut
+
+sub munge_file {
+    my ($self, $file) = @_;
+
+    $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in dist', $file->name ]);
+    $file->content($self->get_readme_content);
+    return;
+}
+
+=method after_build
+
+Create the requested README file in the root.
+
+=cut
+
+sub after_build {
+    my $self = shift;
+
+    if ( $self->location eq 'root' ) {
+        my $filename = $self->filename;
+        $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in root', $filename ]);
+
+        my $content = $self->get_readme_content();
+
+        require File::Slurp;
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
-            $self->log("Override $filename in root");
+            $self->log("overriding $filename in root");
         }
         my $encoded_content = encode($self->_get_source_encoding(),
                                      $content);
         File::Slurp::write_file("$file", {binmode => ':raw'}, $encoded_content);
     }
-    else {
-        die "Unknown location specified: ". $self->location;
-    }
+
     return;
 }
 
@@ -202,7 +252,7 @@ sub _file_from_filename {
     for my $file ($self->zilla->files->flatten) {
         return $file if $file->name eq $filename;
     }
-    return;               # let moose throw exception if nothing found
+    die 'no README found (place [ReadmeAnyFromPod] below [Readme] in dist.ini)!';
 }
 
 sub _source_file {
@@ -235,6 +285,12 @@ sub _get_source_encoding {
     $self->_source_file->encoding;
 }
 
+# possibly set more than once, as other plugins modify the source content
+has _readme_content => (
+    is => 'rw', isa => 'Str',
+    default => '',
+);
+
 =method get_readme_content
 
 Get the content of the README in the desired format.
@@ -243,9 +299,33 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-    my $mmpod = $self->_get_source_pod();
+
+    my $source_file = $self->_file_from_filename($self->source_filename);
+
+    my $callcount = 0;
+    if (not $source_file->does('Dist::Zilla::Role::File::ChangeNotification'))
+    {
+        require Dist::Zilla::Role::File::ChangeNotification;
+        Dist::Zilla::Role::File::ChangeNotification->meta->apply($source_file);
+        my $plugin = $self;
+        $source_file->on_changed(sub {
+            my ($self, $newcontent) = @_;
+
+            # recalculate the content based on the updates, provided it isn't
+            # ourselves that triggered this call
+            if ($newcontent ne $plugin->_readme_content)
+            {
+                $plugin->log('someone tried to munge ' . $source_file->name . ' after we read from it. Making modifications again...');
+                $plugin->munge_file($self);
+            }
+        });
+
+        $source_file->watch_file;
+    }
+
+    my $mmcontent = $source_file->content;
     my $parser = $_types->{$self->type}->{parser};
-    my $readme_content = $parser->($mmpod);
+    $self->_readme_content($parser->($mmcontent));
 }
 
 {
@@ -307,6 +387,14 @@ in your dist.ini, it will can parse the C<type> and C<location>
 attributes from it. The format is "Readme[TYPE]In[LOCATION]". The
 words "Readme" and "In" are optional, and the whole name is
 case-insensitive. The SYNOPSIS section above gives one example.
+
+When run with C<location = dist>, this plugin runs in the C<FileMunger> phase
+to create the new file. If it runs before another C<FileMunger> plugin does,
+that happens to modify the input pod (like, say,
+L<C<[PodWeaver]>|Dist::Zilla::Plugin::PodWeaver>), the README file contents
+will be recalculated, along with a warning that you should modify your
+F<dist.ini> by referencing C<[ReadmeAnyFromPod]> lower down in the file (the
+build still works, but is less efficient).
 
 =head1 BUGS AND LIMITATIONS
 
