@@ -257,14 +257,14 @@ sub after_build {
 
         my $content = $self->get_readme_content();
 
-        require File::Slurp;
+        require Path::Tiny;
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
             $self->log("overriding $filename in root");
         }
         my $encoded_content = encode($self->_get_source_encoding(),
                                      $content);
-        File::Slurp::write_file("$file", {binmode => ':raw'}, $encoded_content);
+        Path::Tiny::path($file)->spew_raw($encoded_content);
     }
 
     return;
