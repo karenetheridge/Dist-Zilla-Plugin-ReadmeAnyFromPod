@@ -5,12 +5,14 @@ use Test::More;
 use Test::DZil;
 use Path::Tiny;
 use Test::Fatal;
+use Test::Deep;
 
 use Test::Requires 'Dist::Zilla::Plugin::PodWeaver';
 
 my @module = (
                 path(qw(source lib Foo.pm)) => <<'MODULE'
 package Foo;
+# ABSTRACT: stuff
 =pod
 
 =head1 SYNOPSIS
@@ -37,10 +39,16 @@ MODULE
         },
     );
 
-    like(
+    is(
         exception { $tzil->build },
-        qr{\[ReadmeAnyFromPod\] someone tried to munge lib/Foo.pm after we read from it},
-        'build dies with a useful error message when the plugin order is wrong',
+        undef,
+        'build still proceeds',
+    );
+
+    cmp_deeply(
+        $tzil->log_messages,
+        supersetof('[ReadmeAnyFromPod] someone tried to munge lib/Foo.pm after we read from it. Making modifications again...'),
+        '...but includes a useful warning about plugin ordering',
     );
 }
 

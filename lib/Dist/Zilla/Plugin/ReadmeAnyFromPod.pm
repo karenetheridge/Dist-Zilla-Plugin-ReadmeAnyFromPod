@@ -228,21 +228,7 @@ sub munge_file {
     my ($self, $file) = @_;
 
     $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in dist', $file->name ]);
-
-    my $content = $self->get_readme_content();
-    my $filename = $self->filename;
-
-    if ( $file ) {
-        $file->content( $content );
-        $self->log("Override $filename in build");
-    } else {
-        $file = Dist::Zilla::File::InMemory->new({
-            content => $content,
-            name    => $filename,
-        });
-        $self->add_file($file);
-    }
-
+    $file->content($self->get_readme_content);
     return;
 }
 
@@ -280,6 +266,12 @@ sub _file_from_filename {
     die 'no README found (place [ReadmeAnyFromPod] below [Readme] in dist.ini)!';
 }
 
+# possibly set more than once, as other plugins modify the source content
+has _readme_content => (
+    is => 'rw', isa => 'Str',
+    default => '',
+);
+
 =method get_readme_content
 
 Get the content of the README in the desired format.
@@ -289,24 +281,32 @@ Get the content of the README in the desired format.
 sub get_readme_content {
     my ($self) = shift;
 
-    my $file = $self->_file_from_filename($self->source_filename);
-    if (not $file->does('Dist::Zilla::Role::File::ChangeNotification'))
+    my $source_file = $self->_file_from_filename($self->source_filename);
+
+    my $callcount = 0;
+    if (not $source_file->does('Dist::Zilla::Role::File::ChangeNotification'))
     {
         require Dist::Zilla::Role::File::ChangeNotification;
-        Dist::Zilla::Role::File::ChangeNotification->meta->apply($file);
+        Dist::Zilla::Role::File::ChangeNotification->meta->apply($source_file);
         my $plugin = $self;
-        $file->on_changed(sub {
-            my $self = shift;
-            $plugin->log_fatal('someone tried to munge ' . $self->name
-                . ' after we read from it. You need to adjust the load order of your plugins.');
+        $source_file->on_changed(sub {
+            my ($self, $newcontent) = @_;
+
+            # recalculate the content based on the updates, provided it isn't
+            # ourselves that triggered this call
+            if ($newcontent ne $plugin->_readme_content)
+            {
+                $plugin->log('someone tried to munge ' . $source_file->name . ' after we read from it. Making modifications again...');
+                $plugin->munge_file($self);
+            }
         });
 
-        $file->watch_file;
+        $source_file->watch_file;
     }
 
-    my $mmcontent = $file->content;
+    my $mmcontent = $source_file->content;
     my $parser = $_types->{$self->type}->{parser};
-    my $readme_content = $parser->($mmcontent);
+    $self->_readme_content($parser->($mmcontent));
 }
 
 {
@@ -372,9 +372,10 @@ case-insensitive. The SYNOPSIS section above gives one example.
 When run with C<location = dist>, this plugin runs in the C<FileMunger> phase
 to create the new file. If it runs before another C<FileMunger> plugin does,
 that happens to modify the input pod (like, say,
-L<C<[PodWeaver]>|Dist::Zilla::Plugin::PodWeaver>), the build will fail,
-notifying you that you need to adjust your plugin order. Modify your
-F<dist.ini> by referencing C<[ReadmeAnyFromPod]> lower down in the file.
+L<C<[PodWeaver]>|Dist::Zilla::Plugin::PodWeaver>), the README file contents
+will be recalculated, along with a warning that you should modify your
+F<dist.ini> by referencing C<[ReadmeAnyFromPod]> lower down in the file (the
+build still works, but is less efficient).
 
 =head1 BUGS AND LIMITATIONS
 
