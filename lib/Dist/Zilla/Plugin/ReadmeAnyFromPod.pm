@@ -214,6 +214,29 @@ Edits the content into the requested README file in the dist.
 sub munge_file {
     my ($self, $file) = @_;
 
+    # Ensure that we repeat the munging if the source file is modified
+    # after we run.
+    my $source_file = $self->_source_file();
+    if (not $source_file->does('Dist::Zilla::Role::File::ChangeNotification'))
+    {
+        require Dist::Zilla::Role::File::ChangeNotification;
+        Dist::Zilla::Role::File::ChangeNotification->meta->apply($source_file);
+        my $plugin = $self;
+        $source_file->on_changed(sub {
+            my ($self, $newcontent) = @_;
+
+            # If the new content is actually different, recalculate
+            # the content based on the updates.
+            if ($newcontent ne $plugin->_last_source_content)
+            {
+                $plugin->log('someone tried to munge ' . $source_file->name . ' after we read from it. Making modifications again...');
+                $plugin->munge_file($self);
+            }
+        });
+
+        $source_file->watch_file;
+    }
+
     $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in dist', $file->name ]);
     $file->content($self->get_readme_content);
     return;
@@ -260,16 +283,24 @@ sub _source_file {
     $self->_file_from_filename($self->source_filename);
 }
 
+# Holds the contents of the source file as of the last time we
+# generated a readme from it. We use this to detect when the source
+# file is modified so we can update the README file again.
+has _last_source_content => (
+    is => 'rw', isa => 'Str',
+    default => '',
+);
+
 sub _get_source_content {
     my ($self) = shift;
-    $self->_source_file->content;
+    $self->_last_source_content($self->_source_file->content);
 }
 
 sub _get_source_pod {
     my ($self) = shift;
-    my $mmcontent = $self->_get_source_content();
+    my $source_content = $self->_get_source_content();
 
-    my $doc = PPI::Document->new(\$mmcontent);
+    my $doc = PPI::Document->new(\$source_content);
     my $pod_elems = $doc->find('PPI::Token::Pod');
     my $pod_content = "";
     if ($pod_elems) {
@@ -285,12 +316,6 @@ sub _get_source_encoding {
     $self->_source_file->encoding;
 }
 
-# possibly set more than once, as other plugins modify the source content
-has _readme_content => (
-    is => 'rw', isa => 'Str',
-    default => '',
-);
-
 =method get_readme_content
 
 Get the content of the README in the desired format.
@@ -299,33 +324,10 @@ Get the content of the README in the desired format.
 
 sub get_readme_content {
     my ($self) = shift;
-
-    my $source_file = $self->_file_from_filename($self->source_filename);
-
-    my $callcount = 0;
-    if (not $source_file->does('Dist::Zilla::Role::File::ChangeNotification'))
-    {
-        require Dist::Zilla::Role::File::ChangeNotification;
-        Dist::Zilla::Role::File::ChangeNotification->meta->apply($source_file);
-        my $plugin = $self;
-        $source_file->on_changed(sub {
-            my ($self, $newcontent) = @_;
-
-            # recalculate the content based on the updates, provided it isn't
-            # ourselves that triggered this call
-            if ($newcontent ne $plugin->_readme_content)
-            {
-                $plugin->log('someone tried to munge ' . $source_file->name . ' after we read from it. Making modifications again...');
-                $plugin->munge_file($self);
-            }
-        });
-
-        $source_file->watch_file;
-    }
-
-    my $mmcontent = $source_file->content;
+    my $source_pod = $self->_get_source_pod();
     my $parser = $_types->{$self->type}->{parser};
-    $self->_readme_content($parser->($mmcontent));
+    # Save the POD text used to generate the README.
+    return $parser->($source_pod);
 }
 
 {
