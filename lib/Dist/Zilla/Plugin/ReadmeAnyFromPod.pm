@@ -164,13 +164,12 @@ Adds the requested README file to the dist.
 sub setup_installer {
     my ($self) = @_;
 
-    require Dist::Zilla::File::InMemory;
-
     my $content = $self->get_readme_content();
 
     my $filename = $self->filename;
 
     if ( $self->location eq 'build' ) {
+        require Dist::Zilla::File::InMemory;
         my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
         if ( $file ) {
             $self->log("Override $filename in build");
@@ -193,7 +192,7 @@ sub setup_installer {
         File::Slurp::write_file("$file", {binmode => ':raw'}, $encoded_content);
     }
     else {
-        die "Unknown location specified";
+        die "Unknown location specified: ". $self->location;
     }
     return;
 }
