@@ -2,10 +2,8 @@ Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
 
-0.132961  2013-10-23 15:41:44 America/Los_Angeles
-    - Fake release test
-
-0.132960  2013-10-23 15:06:29 America/Los_Angeles
+0.132962  2013-10-23 15:45:36 America/Los_Angeles
+    - Now compatible *only* with Dist::Zilla version 5 and up
     - Add test for excluding root README files from build
 
 0.131500  2013-05-30 02:03:44 America/Los_Angeles
