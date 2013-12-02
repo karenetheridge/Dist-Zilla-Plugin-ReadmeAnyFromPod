@@ -13,6 +13,7 @@ use Moose;
 use MooseX::Has::Sugar;
 use PPI::Document;
 use PPI::Token::Pod;
+use Path::Tiny 0.004;
 use Pod::Simple::HTML 3.23;
 use Pod::Simple::Text 3.23;
 use Scalar::Util 'blessed';
@@ -257,7 +258,6 @@ sub after_build {
 
         my $content = $self->get_readme_content();
 
-        require Path::Tiny;
         my $file = $self->zilla->root->file($filename);
         if (-e $file) {
             $self->log("overriding $filename in root");
