@@ -14,8 +14,6 @@ use MooseX::Has::Sugar;
 use PPI::Document;
 use PPI::Token::Pod;
 use Path::Tiny 0.004;
-use Pod::Simple::HTML 3.23;
-use Pod::Simple::Text 3.23;
 use Scalar::Util 'blessed';
 
 with 'Dist::Zilla::Role::AfterBuild';
@@ -36,6 +34,8 @@ our $_types = {
         parser => sub {
             my $pod = $_[0];
 
+            require Pod::Simple::Text;
+            Pod::Simple::Text->VERSION('3.23');
             my $parser = Pod::Simple::Text->new;
             $parser->output_string( \my $content );
             $parser->parse_characters(1);
@@ -64,6 +64,8 @@ our $_types = {
         parser => sub {
             my $pod = $_[0];
 
+            require Pod::Simple::HTML;
+            Pod::Simple::HTML->VERSION('3.23');
             my $parser = Pod::Simple::HTML->new;
             $parser->output_string( \my $content );
             $parser->parse_characters(1);
