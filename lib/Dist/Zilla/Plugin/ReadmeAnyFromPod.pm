@@ -11,8 +11,6 @@ use Moose::Autobox;
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
 use MooseX::Has::Sugar;
-use PPI::Document;
-use PPI::Token::Pod;
 use Path::Tiny 0.004;
 use Scalar::Util 'blessed';
 
@@ -304,6 +302,8 @@ sub _get_source_content {
 sub _get_source_pod {
     my ($self) = shift;
     my $source_content = $self->_get_source_content();
+
+    require PPI::Document;
 
     my $doc = PPI::Document->new(\$source_content);
     my $pod_elems = $doc->find('PPI::Token::Pod');
