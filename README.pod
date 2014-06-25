@@ -6,7 +6,7 @@ Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in
 
 =head1 VERSION
 
-version 0.141120
+version 0.141760
 
 =head1 SYNOPSIS
 
@@ -82,6 +82,12 @@ contains F<dist.ini>). The README will not be incorporated into the
 built dist.
 
 =back
+
+If you want to generate the same README file in both the build
+directory and the root directory, simply generate it in the build
+directory and use the
+L<C<[CopyFilesFromBuild]>|Dist::Zilla::Plugin::CopyFilesFromBuild>
+plugin to copy it to the dist root.
 
 =head1 METHODS
 
