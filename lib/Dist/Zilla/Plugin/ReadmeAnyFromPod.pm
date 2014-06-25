@@ -129,6 +129,12 @@ built dist.
 
 =back
 
+If you want to generate the same README file in both the build
+directory and the root directory, simply generate it in the build
+directory and use the
+L<C<[CopyFilesFromBuild]>|Dist::Zilla::Plugin::CopyFilesFromBuild>
+plugin to copy it to the dist root.
+
 =cut
 
 has location => (
