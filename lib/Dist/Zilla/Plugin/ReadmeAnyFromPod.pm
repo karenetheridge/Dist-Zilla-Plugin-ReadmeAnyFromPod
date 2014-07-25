@@ -15,6 +15,7 @@ use Path::Tiny 0.004;
 use Scalar::Util 'blessed';
 
 with 'Dist::Zilla::Role::AfterBuild';
+with 'Dist::Zilla::Role::AfterRelease';
 with 'Dist::Zilla::Role::FileGatherer';
 with 'Dist::Zilla::Role::FileMunger';
 with 'Dist::Zilla::Role::FilePruner';
@@ -143,6 +144,43 @@ has location => (
     default => sub { $_[0]->__from_name()->[1] || 'build' },
 );
 
+=attr phase
+
+At what phase to generate the README file. Choices are:
+
+=over 4
+
+=item build
+
+(Default) This generates the README at 'after build' time.
+
+=item release
+
+This generates the README at 'after release' time. Note that this is too late
+to get the file into the generated tarball (C<location = build>), but ideal if
+you are using C<location = root>.
+
+=back
+
+=cut
+
+has phase => (
+    ro, lazy,
+    isa => enum([qw(build release)]),
+    default => 'build',
+);
+
+=for Pod::Coverage BUILD
+
+=cut
+
+sub BUILD {
+    my $self = shift;
+
+    $self->log_fatal('You cannot use location=build with phase=release!')
+        if $self->location eq 'build' and $self->phase eq 'release';
+}
+
 =method gather_files
 
 We create the file early, so other plugins that need to have the full list of
@@ -251,11 +289,27 @@ sub munge_file {
 
 =method after_build
 
-Create the requested README file in the root.
+Create the requested README file at build time, if requested.
 
 =cut
 
 sub after_build {
+    my $self = shift;
+    $self->_create_readme if $self->phase eq 'build';
+}
+
+=method after_release
+
+Create the requested README file at release time, if requested.
+
+=cut
+
+sub after_release {
+    my $self = shift;
+    $self->_create_readme if $self->phase eq 'release';
+}
+
+sub _create_readme {
     my $self = shift;
 
     if ( $self->location eq 'root' ) {
