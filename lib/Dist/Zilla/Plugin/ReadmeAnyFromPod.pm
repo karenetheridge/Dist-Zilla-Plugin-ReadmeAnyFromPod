@@ -77,6 +77,8 @@ our $_types = {
 =attr type
 
 The file format for the readme. Supported types are "text", "markdown", "pod", and "html".
+Note that you are not advised to create a F<.pod> file in the dist itself, as
+L<ExtUtils::MakeMaker> will install that, both into C<PERL5LIB> and C<MAN3DIR>.
 
 =cut
 
