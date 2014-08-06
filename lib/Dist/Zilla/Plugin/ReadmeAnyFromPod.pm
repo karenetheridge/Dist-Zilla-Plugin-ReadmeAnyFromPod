@@ -154,13 +154,16 @@ At what phase to generate the README file. Choices are:
 
 =item build
 
-(Default) This generates the README at 'after build' time.
+(Default) This generates the README at 'after build' time. A new
+README will be generated each time you build the dist.
 
 =item release
 
-This generates the README at 'after release' time. Note that this is too late
-to get the file into the generated tarball (C<location = build>), but ideal if
-you are using C<location = root>.
+This generates the README at 'after release' time. Note that this is
+too late to get the file into the generated tarball, and is therefore
+incompatible with C<location = build>. However, this is ideal if you
+are using C<location = root> and only want to update the README upon
+each release of your module.
 
 =back
 
