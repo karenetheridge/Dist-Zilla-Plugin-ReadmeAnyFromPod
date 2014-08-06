@@ -181,6 +181,9 @@ sub BUILD {
 
     $self->log_fatal('You cannot use location=build with phase=release!')
         if $self->location eq 'build' and $self->phase eq 'release';
+
+    $self->log('You are creating a .pod directly in the build - be aware that this will be installed like a .pm file and as a manpage')
+        if $self->location eq 'build' and $self->type eq 'pod';
 }
 
 =method gather_files
