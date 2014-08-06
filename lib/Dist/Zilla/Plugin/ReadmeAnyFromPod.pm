@@ -76,9 +76,10 @@ our $_types = {
 
 =attr type
 
-The file format for the readme. Supported types are "text", "markdown", "pod", and "html".
-Note that you are not advised to create a F<.pod> file in the dist itself, as
-L<ExtUtils::MakeMaker> will install that, both into C<PERL5LIB> and C<MAN3DIR>.
+The file format for the readme. Supported types are "text",
+"markdown", "pod", and "html".  Note that you are not advised to
+create a F<.pod> file in the dist itself, as L<ExtUtils::MakeMaker>
+will install that, both into C<PERL5LIB> and C<MAN3DIR>.
 
 =cut
 
@@ -90,7 +91,8 @@ has type => (
 
 =attr filename
 
-The file name of the README file to produce. The default depends on the selected format.
+The file name of the README file to produce. The default depends on
+the selected format.
 
 =cut
 
