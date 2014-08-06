@@ -1,6 +1,8 @@
 Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
+
+0.142180  2014-08-06 09:10:56PDT-0700 America/Los_Angeles
     - add "phase" option, for the ability to generate the README file at
       release time instead of build time (Karen Etheridge)
 
