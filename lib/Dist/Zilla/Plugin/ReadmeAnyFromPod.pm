@@ -255,7 +255,14 @@ sub munge_files {
     if ( $self->location eq 'build' ) {
         my $filename = $self->filename;
         my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
-        $self->munge_file($file);
+        if ($file) {
+            $self->munge_file($file);
+        }
+        else {
+            $self->log_fatal(
+                      "Could not find a $filename file during the build"
+                    . ' - did you prune it away with a PruneFiles block?' );
+        }
     }
     return;
 }
