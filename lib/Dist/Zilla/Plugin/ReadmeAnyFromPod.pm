@@ -483,11 +483,6 @@ will be recalculated, along with a warning that you should modify your
 F<dist.ini> by referencing C<[ReadmeAnyFromPod]> lower down in the file (the
 build still works, but is less efficient).
 
-=head1 ACKNOWLEDGMENTS
-
-Thanks to Karen Etheridge (ETHER) for helping me maintain this module
-and keep it working through breaking changes in its dependencies.
-
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
