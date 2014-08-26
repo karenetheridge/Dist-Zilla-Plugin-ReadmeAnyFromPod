@@ -105,16 +105,25 @@ has filename => (
 
 =attr source_filename
 
-The file from which to extract POD for the content of the README.
-The default is the file of the main module of the dist.
+The file from which to extract POD for the content of the README. The
+default is the file of the main module of the dist. If the main module
+has a companion ".pod" file with the same basename, that is used as
+the default instead.
 
 =cut
 
 has source_filename => (
     ro, lazy,
     isa => 'Str',
-    default => sub { shift->zilla->main_module->name; },
+    builder => '_build_source_filename',
 );
+
+sub _build_source_filename {
+    my $self = shift;
+    my $pm = $self->zilla->main_module->name;
+    (my $pod = $pm) =~ s/\.pm$/\.pod/;
+    return -e $pod ? $pod : $pm;
+}
 
 =attr location
 
