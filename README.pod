@@ -6,7 +6,7 @@ Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in
 
 =head1 VERSION
 
-version 0.142250
+version 0.142470
 
 =head1 SYNOPSIS
 
@@ -65,8 +65,10 @@ the selected format.
 
 =head2 source_filename
 
-The file from which to extract POD for the content of the README.
-The default is the file of the main module of the dist.
+The file from which to extract POD for the content of the README. The
+default is the file of the main module of the dist. If the main module
+has a companion ".pod" file with the same basename, that is used as
+the default instead.
 
 =head2 location
 
@@ -148,11 +150,6 @@ Get the content of the README in the desired format.
 
 =for Pod::Coverage BUILD
 
-=head1 ACKNOWLEDGMENTS
-
-Thanks to Karen Etheridge (ETHER) for helping me maintain this module
-and keep it working through breaking changes in its dependencies.
-
 =head1 BUGS AND LIMITATIONS
 
 Please report any bugs or feature requests to
@@ -180,9 +177,19 @@ L<Dist::Zilla::Plugin::CopyReadmeFromBuild> - Functionality partly subsumed by t
 
 See perlmodinstall for information and options on installing Perl modules.
 
-=head1 AUTHOR
+=head1 AUTHORS
+
+=over 4
+
+=item *
 
 Ryan C. Thompson <rct@thompsonclan.org>
+
+=item *
+
+Karen Etheridge <ether@cpan.org>
+
+=back
 
 =head1 COPYRIGHT AND LICENSE
 

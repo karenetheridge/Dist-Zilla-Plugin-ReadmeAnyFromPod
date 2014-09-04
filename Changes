@@ -1,6 +1,8 @@
 Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
+
+0.142470  2014-09-04 16:14:01PDT-0700 America/Los_Angeles
     - Use main module pod file by default if available. If your main
       module has its POD in a separate file with the same basename and
       ".pod" extension, then that file will be used automatically as
