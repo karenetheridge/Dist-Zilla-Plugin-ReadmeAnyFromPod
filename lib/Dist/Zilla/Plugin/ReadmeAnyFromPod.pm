@@ -19,6 +19,7 @@ with 'Dist::Zilla::Role::AfterRelease';
 with 'Dist::Zilla::Role::FileGatherer';
 with 'Dist::Zilla::Role::FileMunger';
 with 'Dist::Zilla::Role::FilePruner';
+with 'Dist::Zilla::Role::FileWatcher';
 
 # TODO: Should these be separate modules?
 our $_types = {
@@ -273,34 +274,23 @@ Edits the content into the requested README file in the dist.
 
 =cut
 
+my %watching;
 sub munge_file {
-    my ($self, $file) = @_;
+    my ($self, $target_file) = @_;
 
     # Ensure that we repeat the munging if the source file is modified
     # after we run.
     my $source_file = $self->_source_file();
-    if (not $source_file->does('Dist::Zilla::Role::File::ChangeNotification'))
-    {
-        require Dist::Zilla::Role::File::ChangeNotification;
-        Dist::Zilla::Role::File::ChangeNotification->meta->apply($source_file);
-        my $plugin = $self;
-        $source_file->on_changed(sub {
-            my ($self, $newcontent) = @_;
+    $self->watch_file($source_file, sub {
+        my ($self, $watched_file) = @_;
 
-            # If the new content is actually different, recalculate
-            # the content based on the updates.
-            if ($newcontent ne $plugin->_last_source_content)
-            {
-                $plugin->log('someone tried to munge ' . $source_file->name . ' after we read from it. Making modifications again...');
-                $plugin->munge_file($file);
-            }
-        });
+        # recalculate the content based on the updates
+        $self->log('someone tried to munge ' . $watched_file->name . ' after we read from it. Making modifications again...');
+        $self->munge_file($target_file);
+    }) if not $watching{$source_file->name}++;
 
-        $source_file->watch_file;
-    }
-
-    $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in dist', $file->name ]);
-    $file->content($self->get_readme_content);
+    $self->log_debug([ 'ReadmeAnyFromPod updating contents of %s in dist', $target_file->name ]);
+    $target_file->content($self->get_readme_content);
     return;
 }
 
