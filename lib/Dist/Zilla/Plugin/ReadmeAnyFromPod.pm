@@ -4,13 +4,10 @@ use warnings;
 package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 # ABSTRACT: Automatically convert POD to a README in any format for Dist::Zilla
 
-use Encode qw( encode );
-use IO::Handle;
-use List::Util 1.33 qw( reduce none first );
+use List::Util 1.33 qw( none first );
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
 use MooseX::Has::Sugar;
-use Path::Tiny 0.004;
 use Scalar::Util 'blessed';
 
 with 'Dist::Zilla::Role::AfterBuild',
@@ -334,7 +331,9 @@ sub _create_readme {
 
         my $content = $self->get_readme_content();
 
-        my $destination_file = path($self->zilla->root, $filename);
+        require Path::Tiny;
+        Path::Tiny->VERSION(0.004);
+        my $destination_file = Path::Tiny::path($self->zilla->root, $filename);
         if (-e $destination_file) {
             $self->log("overriding $filename in root");
         }
@@ -342,7 +341,7 @@ sub _create_readme {
         $destination_file->spew_raw(
             $encoding eq 'raw'
                 ? $content
-                : encode($encoding, $content)
+                : do { require Encode; Encode::encode($encoding, $content) }
         );
     }
 
