@@ -13,12 +13,13 @@ use MooseX::Has::Sugar;
 use Path::Tiny 0.004;
 use Scalar::Util 'blessed';
 
-with 'Dist::Zilla::Role::AfterBuild';
-with 'Dist::Zilla::Role::AfterRelease';
-with 'Dist::Zilla::Role::FileGatherer';
-with 'Dist::Zilla::Role::FileMunger';
-with 'Dist::Zilla::Role::FilePruner';
-with 'Dist::Zilla::Role::FileWatcher';
+with 'Dist::Zilla::Role::AfterBuild',
+    'Dist::Zilla::Role::AfterRelease',
+    'Dist::Zilla::Role::FileGatherer',
+    'Dist::Zilla::Role::FileMunger',
+    'Dist::Zilla::Role::FilePruner',
+    'Dist::Zilla::Role::FileWatcher',
+;
 
 # TODO: Should these be separate modules?
 our $_types = {
