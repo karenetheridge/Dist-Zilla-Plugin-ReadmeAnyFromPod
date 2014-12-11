@@ -6,8 +6,7 @@ package Dist::Zilla::Plugin::ReadmeAnyFromPod;
 
 use Encode qw( encode );
 use IO::Handle;
-use List::Util qw( reduce );
-use Moose::Autobox;
+use List::Util 1.33 qw( reduce none first );
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
 use MooseX::Has::Sugar;
@@ -214,7 +213,7 @@ sub gather_files {
     my $filename = $self->filename;
     if ( $self->location eq 'build'
          # allow for the file to also exist in the dist
-         and not @{$self->zilla->files->grep( sub { $_->name eq $filename })}
+         and none { $_->name eq $filename } @{ $self->zilla->files }
        ) {
         require Dist::Zilla::File::InMemory;
         my $file = Dist::Zilla::File::InMemory->new({
@@ -246,7 +245,7 @@ sub prune_files {
                 and $_->location eq 'build'
                 and $_->filename eq $self->filename
         } @{$self->zilla->plugins}) {
-        for my $file ($self->zilla->files->flatten) {
+        for my $file (@{ $self->zilla->files }) {
             next unless $file->name eq $self->filename;
             $self->log_debug([ 'pruning %s', $file->name ]);
             $self->zilla->prune_file($file);
@@ -264,7 +263,7 @@ sub munge_files {
 
     if ( $self->location eq 'build' ) {
         my $filename = $self->filename;
-        my $file = $self->zilla->files->grep( sub { $_->name eq $filename } )->head;
+        my $file = first { $_->name eq $filename } @{ $self->zilla->files };
         if ($file) {
             $self->munge_file($file);
         }
@@ -351,7 +350,7 @@ sub _create_readme {
 
 sub _file_from_filename {
     my ($self, $filename) = @_;
-    for my $file ($self->zilla->files->flatten) {
+    for my $file (@{ $self->zilla->files }) {
         return $file if $file->name eq $filename;
     }
     die 'no README found (place [ReadmeAnyFromPod] below [Readme] in dist.ini)!';
