@@ -16,6 +16,7 @@ with 'Dist::Zilla::Role::AfterBuild',
     'Dist::Zilla::Role::FileMunger',
     'Dist::Zilla::Role::FilePruner',
     'Dist::Zilla::Role::FileWatcher',
+    'Dist::Zilla::Role::PPI',
 ;
 
 # TODO: Should these be separate modules?
@@ -369,23 +370,27 @@ has _last_source_content => (
     default => '',
 );
 
-sub _get_source_content {
-    my ($self) = shift;
-    $self->_last_source_content($self->_source_file->content);
-}
-
 sub _get_source_pod {
     my ($self) = shift;
-    my $source_content = $self->_get_source_content();
 
-    require PPI::Document;
+    my $source_file = $self->_source_file;
 
-    my $doc = PPI::Document->new(\$source_content);
+    # cache contents before we alter it, for later comparison
+    $self->_last_source_content($source_file->content);
+
+    require PPI::Document;  # for Dist::Zilla::Role::PPI < 5.009
+    my $doc = $self->ppi_document_for_file($source_file);
+
     my $pod_elems = $doc->find('PPI::Token::Pod');
     my $pod_content = "";
     if ($pod_elems) {
         # Concatenation should stringify it
         $pod_content .= PPI::Token::Pod->merge(@$pod_elems);
+    }
+
+    if ((my $encoding = $self->_get_source_encoding) ne 'raw') {
+        require Encode;
+        $pod_content = Encode::decode($encoding, $pod_content);
     }
 
     return $pod_content;
