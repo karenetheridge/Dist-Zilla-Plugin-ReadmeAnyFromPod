@@ -8,9 +8,9 @@ eval 'use Dist::Zilla 5.000; 1;';
 plan skip_all => 'Dist::Zilla 5 required for full encoding support' if $@;
 
 use utf8;
-binmode STDOUT, ':utf8';
-binmode STDERR, ':utf8';
-binmode $_, ':utf8' foreach map { Test::Builder->new->$_ } qw(output failure_output);
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
+binmode Test::More->builder->$_, ':encoding(UTF-8)' foreach qw(output failure_output todo_output);
 
 use autodie;
 use Test::DZil;

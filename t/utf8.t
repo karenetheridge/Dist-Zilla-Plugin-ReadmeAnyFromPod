@@ -5,7 +5,9 @@ use strict;
 use warnings FATAL => 'all';
 
 use utf8;
-binmode STDOUT, ':utf8';
+binmode Test::More->builder->$_, ':encoding(UTF-8)' foreach qw(output failure_output todo_output);
+binmode STDOUT, ':encoding(UTF-8)';
+binmode STDERR, ':encoding(UTF-8)';
 
 use autodie;
 use Test::DZil;
