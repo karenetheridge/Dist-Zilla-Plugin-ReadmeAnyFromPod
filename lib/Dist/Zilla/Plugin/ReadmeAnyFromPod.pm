@@ -333,12 +333,12 @@ sub _create_readme {
 
         my $content = $self->get_readme_content();
 
-        my $file = $self->zilla->root->file($filename);
-        if (-e $file) {
+        my $destination_file = path($self->zilla->root, $filename);
+        if (-e $destination_file) {
             $self->log("overriding $filename in root");
         }
         my $encoding = $self->_get_source_encoding();
-        Path::Tiny::path($file)->spew_raw(
+        $destination_file->spew_raw(
             $encoding eq 'raw'
                 ? $content
                 : encode($encoding, $content)
