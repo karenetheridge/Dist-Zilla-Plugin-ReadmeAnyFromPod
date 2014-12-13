@@ -398,9 +398,10 @@ sub _get_source_pod {
 
 sub _get_source_encoding {
     my ($self) = shift;
+    my $source_file = $self->_source_file;
     return
-        $self->_source_file->can('encoding')
-            ? $self->_source_file->encoding
+        $source_file->can('encoding')
+            ? $source_file->encoding
             : 'raw';        # Dist::Zilla pre-5.0
 }
 
