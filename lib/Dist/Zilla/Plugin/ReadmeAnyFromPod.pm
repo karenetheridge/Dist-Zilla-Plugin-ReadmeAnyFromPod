@@ -349,17 +349,11 @@ sub _create_readme {
     return;
 }
 
-sub _file_from_filename {
-    my ($self, $filename) = @_;
-    for my $file (@{ $self->zilla->files }) {
-        return $file if $file->name eq $filename;
-    }
-    die 'no README found (place [ReadmeAnyFromPod] below [Readme] in dist.ini)!';
-}
-
 sub _source_file {
     my ($self) = shift;
-    $self->_file_from_filename($self->source_filename);
+
+    my $filename = $self->source_filename;
+    first { $_->name eq $filename } @{ $self->zilla->files };
 }
 
 # Holds the contents of the source file as of the last time we
