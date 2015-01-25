@@ -47,13 +47,11 @@ our $_types = {
             my $pod = $_[0];
 
             require Pod::Markdown;
+            Pod::Markdown->VERSION('2.000');
             my $parser = Pod::Markdown->new();
-
-            require IO::Scalar;
-            my $input_handle = IO::Scalar->new(\$pod);
-
-            $parser->parse_from_filehandle($input_handle);
-            my $content = $parser->as_markdown();
+            $parser->output_string( \my $content );
+            $parser->parse_characters(1);
+            $parser->parse_string_document($pod);
             return $content;
         },
     },
