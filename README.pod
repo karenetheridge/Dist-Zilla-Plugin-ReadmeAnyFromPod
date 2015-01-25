@@ -6,7 +6,7 @@ Dist::Zilla::Plugin::ReadmeAnyFromPod - Automatically convert POD to a README in
 
 =head1 VERSION
 
-version 0.142470
+version 0.150250
 
 =head1 SYNOPSIS
 
@@ -193,7 +193,7 @@ Karen Etheridge <ether@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2014 by Ryan C. Thompson.
+This software is copyright (c) 2015 by Ryan C. Thompson.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
