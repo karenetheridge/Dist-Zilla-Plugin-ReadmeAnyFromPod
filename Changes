@@ -2,6 +2,10 @@ Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
 
+0.160630  2016-03-02 17:17:25-08:00 America/Los_Angeles
+    - add provides section to META.yml (using
+      Dist::Zilla::Plugin::MetaProvides::Package)
+
 0.150250  2015-01-25 11:48:12PST-0800 America/Los_Angeles
     - Merge a number of internal code cleanups and efficnency
       improvements. No user-visible changes.
