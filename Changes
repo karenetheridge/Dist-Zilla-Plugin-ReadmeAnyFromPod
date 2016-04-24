@@ -2,6 +2,9 @@ Revision history for Dist-Zilla-Plugin-ReadmeAnyFromPod
 
 {{$NEXT}}
 
+0.161150  2016-04-24 10:10:10-07:00 America/Los_Angeles
+    - Update for Dist::Zilla v6 compatibility.
+
 0.160630  2016-03-02 17:17:25-08:00 America/Los_Angeles
     - add provides section to META.yml (using
       Dist::Zilla::Plugin::MetaProvides::Package)
