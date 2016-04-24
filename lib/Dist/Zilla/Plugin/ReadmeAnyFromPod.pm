@@ -264,12 +264,12 @@ sub after_build {
 
         my $content = $self->get_readme_content();
 
-        my $file = $self->zilla->root->file($filename);
+        my $file = path($self->zilla->root)->child($filename);
         if (-e $file) {
             $self->log("overriding $filename in root");
         }
         my $encoding = $self->_get_source_encoding();
-        Path::Tiny::path($file)->spew_raw(
+        path($file)->spew_raw(
             $encoding eq 'raw'
                 ? $content
                 : encode($encoding, $content)

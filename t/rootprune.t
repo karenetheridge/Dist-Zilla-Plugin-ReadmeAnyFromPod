@@ -28,13 +28,13 @@ my $tzil = Builder->from_config(
 
 # Artificially create README.mkdn and README in root. (Ordinarily this
 # file would be created by a previous build.)
-Path::Tiny::path($tzil->tempdir->file("source/README.mkdn"))->spew(<<EOF);
+path($tzil->tempdir)->child('source/README.mkdn')->spew(<<EOF);
 # Placeholder README content
 
 This is the content of the README.mkdn file.
 EOF
 
-Path::Tiny::path($tzil->tempdir->file("source/README"))->spew(<<EOF);
+path($tzil->tempdir)->child('source/README')->spew(<<EOF);
 Placeholder README content
 
 This is the content of the README file.
@@ -50,7 +50,7 @@ sub file_has_content {
 
 sub file_nonexistent {
   my $path = shift;
-  ! -e $tzil->tempdir->file($path);
+  ! -e path($tzil->tempdir)->child($path);
 }
 
 ok(file_has_content("source/README.mkdn"),

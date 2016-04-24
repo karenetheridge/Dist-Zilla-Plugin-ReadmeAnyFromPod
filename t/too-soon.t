@@ -52,7 +52,7 @@ MODULE
         '...but includes a useful warning about plugin ordering',
     );
 
-    my $build_dir = $tzil->tempdir->subdir('build');
+    my $build_dir = path($tzil->tempdir)->child('build');
 
     my $dist_file = path($build_dir, "README.md");
     ok(-e $dist_file, "README.md created in dist");
@@ -87,7 +87,7 @@ MODULE
         'build completes successfully',
     );
 
-    my $build_dir = $tzil->tempdir->subdir('build');
+    my $build_dir = path($tzil->tempdir)->child('build');
 
     my $dist_file = path($build_dir, "README.md");
     ok(-e $dist_file, "README.md created in dist");
