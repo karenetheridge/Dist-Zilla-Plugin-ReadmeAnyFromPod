@@ -8,6 +8,7 @@ use List::Util 1.33 qw( none first );
 use Moose::Util::TypeConstraints qw(enum);
 use Moose;
 use MooseX::Has::Sugar;
+use Path::Tiny 0.004;
 use Scalar::Util 'blessed';
 
 with 'Dist::Zilla::Role::AfterBuild',
@@ -330,9 +331,7 @@ sub _create_readme {
 
         my $content = $self->get_readme_content();
 
-        require Path::Tiny;
-        Path::Tiny->VERSION(0.004);
-        my $destination_file = Path::Tiny::path($self->zilla->root, $filename);
+        my $destination_file = path($self->zilla->root)->child($filename);
         if (-e $destination_file) {
             $self->log("overriding $filename in root");
         }

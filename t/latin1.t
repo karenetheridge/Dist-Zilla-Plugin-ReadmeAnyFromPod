@@ -33,7 +33,7 @@ my $tzil = Builder->from_config(
 
 lives_ok { $tzil->build; } "Built dist successfully";
 
-my $build_dir = $tzil->tempdir->subdir('build');
+my $build_dir = path($tzil->tempdir)->child('build');
 my $file = path($build_dir, 'README');
 ok( -e $file, 'README created in build');
 
